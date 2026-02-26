@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grand Luxe Hotel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <header class="hero-section" style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/static/images/hotel_outside.jpg') no-repeat center center/cover fixed;">
+        <div class="hero-content">
+            <h1>Welcome to Our Hotel</h1>
+    
+             <p class="availability-badge {{ 'sold-out' if rooms_left <= 0 else '' }}">
+                 {{ 'SOLD OUT' if rooms_left <= 0 else 'Rooms Available: ' ~ rooms_left }}
+            </p>
+
+            <div class="hero-buttons">
+                {% if rooms_left > 0 %}
+                    <button onclick="openModal()" class="btn-primary">Book Now</button>
+                {% endif %}
+                <button onclick="openCancelModal()" class="btn-secondary">Cancel Booking</button>
+                <a href="#gallery" class="btn-secondary">View Gallery</a>
+            </div>
+        </div>
+    </header>
+
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Reserve Your Stay</h2>
+            <form action="/add-booking" method="POST">
+                <input type="text" name="guest_name" placeholder="Guest Name" required>
+                <input type="number" name="room_number" placeholder="Room Number" required>
+                <div class="date-group">
+                    <label>Check-in</label>
+                    <input type="date" name="check_in" required>
+                </div>
+                <div class="date-group">
+                    <label>Check-out</label>
+                    <input type="date" name="check_out" required>
+                </div>
+                <button type="submit" class="btn-primary">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="cancelModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeCancelModal()">&times;</span>
+            <h2>Cancel Reservation</h2>
+            <p style="font-size: 0.9rem; color: #666;">Enter your name and room number to cancel.</p>
+            <form action="/cancel-booking" method="POST">
+                <input type="text" name="guest_name" placeholder="Name used for booking" required>
+                <input type="number" name="room_number" placeholder="Room Number" required>
+                <button type="submit" class="btn-primary" style="background-color: #ff4d4d; border: none;">Cancel My Stay</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="galleryModal" class="gallery-lightbox" onclick="closeGallery()">
+        <span class="close-lightbox">&times;</span>
+        <img class="lightbox-content" id="bigImage">
+        <div id="caption"></div>
+    </div>
+
+    <section id="gallery" class="gallery">
+        <h2>Our Rooms & Facilities</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="{{ url_for('static', filename='images/room1.jpg') }}" alt="Standard Room" onclick="openGallery(this)">
+                <p>Standard Room</p>
+            </div>
+            <div class="gallery-item">
+                <img src="{{ url_for('static', filename='images/room2.jpg') }}" alt="Deluxe Room" onclick="openGallery(this)">
+                <p>Deluxe Room</p>
+            </div>
+            <div class="gallery-item">
+                <img src="{{ url_for('static', filename='images/sitting_room.jpg') }}" alt="Sitting Area" onclick="openGallery(this)">
+                <p>Sitting Area</p>
+            </div>
+            <div class="gallery-item">
+                <img src="{{ url_for('static', filename='images/bathroom1.jpg') }}" alt="En-suite Bathroom" onclick="openGallery(this)">
+                <p>En-suite Bathroom</p>
+            </div>
+            <div class="gallery-item">
+                <img src="{{ url_for('static', filename='images/bathroom2.jpg') }}" alt="Luxury Spa Bath" onclick="openGallery(this)">
+                <p>Luxury Spa Bath</p>
+            </div>
+            <div class="gallery-item">
+                <img src="{{ url_for('static', filename='images/fullroom1.jpg') }}" alt="Executive Suite" onclick="openGallery(this)">
+                <p>Executive Suite</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="hotel-info">
+        <div class="footer-content">
+            <h3>Grand Luxe Hotel & Spa</h3>
+            <p>123 Luxury Lane, Paradise City</p>
+            <p>Contact: +1 234 567 890 | info@grandluxe.com</p>
+            <hr style="width: 50px; margin: 20px auto; border-color: #555;">
+            <p>Experience world-class service and elegant accommodations in the heart of the city.</p>
+        </div>
+    </footer>
+
+    <script>
+        // BOOKING MODAL LOGIC
+        function openModal() { document.getElementById("bookingModal").style.display = "block"; }
+        function closeModal() { document.getElementById("bookingModal").style.display = "none"; }
+
+        // CANCEL MODAL LOGIC
+        function openCancelModal() { document.getElementById("cancelModal").style.display = "block"; }
+        function closeCancelModal() { document.getElementById("cancelModal").style.display = "none"; }
+
+        // GALLERY LIGHTBOX LOGIC
+        function openGallery(imgElement) {
+            var modal = document.getElementById("galleryModal");
+            var modalImg = document.getElementById("bigImage");
+            var captionText = document.getElementById("caption");
+            
+            modal.style.display = "block";
+            modalImg.src = imgElement.src;
+            captionText.innerHTML = imgElement.alt;
+        }
+
+        function closeGallery() {
+            document.getElementById("galleryModal").style.display = "none";
+        }
+
+        // Close modals if clicking outside content
+        window.onclick = function(event) {
+            let bModal = document.getElementById("bookingModal");
+            let cModal = document.getElementById("cancelModal");
+            if (event.target == bModal) { bModal.style.display = "none"; }
+            if (event.target == cModal) { cModal.style.display = "none"; }
+        }
+
+        // Auto-hide notifications
+        setTimeout(function() {
+            let flashes = document.querySelectorAll('.flash-message');
+            flashes.forEach(msg => msg.style.display = 'none');
+        }, 3000);
+    </script>
+</body>
+</html>
